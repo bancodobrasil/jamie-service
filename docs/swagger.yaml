@@ -97,6 +97,102 @@ paths:
       summary: Evaluate the rulesheet
       tags:
       - eval
+  /{uuid}/{version}/eval:
+    post:
+      consumes:
+      - application/json
+      description: Receive the params to execute the menu
+      parameters:
+      - description: uuid
+        in: path
+        name: uuid
+        type: string
+      - description: version
+        in: path
+        name: version
+        type: string
+      - description: Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+        default:
+          description: ""
+          schema:
+            type: string
+      security:
+      - Authentication Api Key: []
+      summary: Evaluate the menu
+      tags:
+      - eval
+  /{uuid}/eval:
+    post:
+      consumes:
+      - application/json
+      description: Receive the params to execute the menu
+      parameters:
+      - description: uuid
+        in: path
+        name: uuid
+        type: string
+      - description: version
+        in: path
+        name: version
+        type: string
+      - description: Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+        default:
+          description: ""
+          schema:
+            type: string
+      security:
+      - Authentication Api Key: []
+      summary: Evaluate the menu
+      tags:
+      - eval
 securityDefinitions:
   Authentication Api Key:
     in: header

@@ -76,20 +76,21 @@ func (ctrl *menu) GetHandler() gin.HandlerFunc {
 }
 
 // GetHandler godoc
-// @Summary 		Evaluate the rulesheet
-// @Description 	Receive the params to execute the rulesheet
+// @Summary 		Evaluate the menu
+// @Description 	Receive the params to execute the menu
 // @Tags 			eval
 // @Accept  		json
 // @Produce  		json
 // @Param			uuid path string false "uuid"
 // @Param 			version path string false "version"
+// @Param  			payload body object true "Payload"
 // @Success 		200 {string} string "ok"
 // @Failure 		400,404 {object} string
 // @Failure 		500 {object} string
 // @Failure 		default {object} string
 // @Security 		Authentication Api Key
-// @Router 			/{uuid}/{version} [get]
-// @Router 			/{uuid} [get]
+// @Router 			/{uuid}/{version}/eval [post]
+// @Router 			/{uuid}/eval [post]
 func (ctrl *menu) EvalHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
