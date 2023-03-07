@@ -96,25 +96,25 @@ func LoadConfig() (err error) {
 
 	err = viper.Unmarshal(config)
 	if err != nil {
-		log.Fatal("Error on Unmarshal Config: %v", err)
+		log.Fatalf("Error on Unmarshal Config: %v", err)
 		return
 	}
 
 	err = viper.Unmarshal(config.Cache)
 	if err != nil {
-		log.Fatal("Error on Unmarshal Config Cache: %v", err)
+		log.Fatalf("Error on Unmarshal Config Cache: %v", err)
 		return
 	}
 
 	err = viper.Unmarshal(config.FileSystem)
 	if err != nil {
-		log.Fatal("Error on Unmarshal Config FileSystem: %v", err)
+		log.Fatalf("Error on Unmarshal Config FileSystem: %v", err)
 		return
 	}
 
 	err = viper.Unmarshal(config.S3)
 	if err != nil {
-		log.Fatal("Error on Unmarshal Config S3: %v", err)
+		log.Fatalf("Error on Unmarshal Config S3: %v", err)
 		return
 	}
 
