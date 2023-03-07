@@ -1,0 +1,11 @@
+ruller
+jamie-service
+*.grl
+config.yaml
+example.json
+*.exe
+*.env
+*.out
+vendor
+_data/*
+!.gitkeep

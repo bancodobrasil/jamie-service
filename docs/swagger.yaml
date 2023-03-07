@@ -1,0 +1,107 @@
+basePath: /api/v1
+host: localhost:8000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Service Project provide the menus
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Jamie Service
+  version: "1.0"
+paths:
+  /{uuid}:
+    get:
+      consumes:
+      - application/json
+      description: Receive the params to execute the rulesheet
+      parameters:
+      - description: uuid
+        in: path
+        name: uuid
+        type: string
+      - description: version
+        in: path
+        name: version
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+        default:
+          description: ""
+          schema:
+            type: string
+      security:
+      - Authentication Api Key: []
+      summary: Evaluate the rulesheet
+      tags:
+      - eval
+  /{uuid}/{version}:
+    get:
+      consumes:
+      - application/json
+      description: Receive the params to execute the rulesheet
+      parameters:
+      - description: uuid
+        in: path
+        name: uuid
+        type: string
+      - description: version
+        in: path
+        name: version
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+        default:
+          description: ""
+          schema:
+            type: string
+      security:
+      - Authentication Api Key: []
+      summary: Evaluate the rulesheet
+      tags:
+      - eval
+securityDefinitions:
+  Authentication Api Key:
+    in: header
+    name: X-API-Key
+    type: apiKey
+swagger: "2.0"
+x-extension-openapi:
+  example: value on a json format
