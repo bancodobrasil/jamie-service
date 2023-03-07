@@ -20,16 +20,10 @@ jobs:
       with:
         go-version: ${{ env.LATEST_GO_VERSION }}
 
-    - name: "Fetch dependencies"
-      run: go mod download
-
-    - name: Build
-      run: go build -v ./...
-
-    - run: |
-        REPOSITORY_NAME=$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}')
-        echo "REPOSITORY_NAME=$REPOSITORY_NAME" >> $GITHUB_ENV
-      shell: bash
+    # - name: Build
+    #   run: |
+    # 		go mod download
+    # 		go build -v ./...
 
     - name: Push to dokku
       uses: dokku/github-action@master
