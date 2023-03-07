@@ -1,4 +1,4 @@
-name: CI/CD to Heroku
+name: CI/CD to DEV
 
 on:
   push:
