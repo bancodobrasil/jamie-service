@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine AS BUILD
+FROM golang:1.19-alpine AS BUILD
 
 WORKDIR /app
 
@@ -12,11 +12,11 @@ COPY . /app
 
 RUN go build -o jamie-service
 
-FROM alpine:3.15
+FROM alpine:3.17
 
 COPY --from=BUILD /app/jamie-service /bin/
 
-CMD [ "ruller" ] 
+CMD [ "jamie-service" ] 
 
 
 
