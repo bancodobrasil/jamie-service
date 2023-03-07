@@ -20,10 +20,11 @@ jobs:
       with:
         go-version: ${{ env.LATEST_GO_VERSION }}
 
-    # - name: Build
-    #   run: |
-    # 		go mod download
-    # 		go build -v ./...
+    - name: "Fetch dependencies"
+      run: go mod download
+
+    - name: Build
+      run: go build -v ./...
 
     - name: Push to dokku
       uses: dokku/github-action@master
