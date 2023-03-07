@@ -31,13 +31,21 @@ jobs:
         echo "REPOSITORY_NAME=$REPOSITORY_NAME" >> $GITHUB_ENV
       shell: bash
 
-    - name: Deploy to Heroku
-      uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+    - name: Push to dokku
+      uses: dokku/github-action@master
       with:
-        heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-        heroku_app_name: ${{env.REPOSITORY_NAME}} #Must be unique in Heroku
-        heroku_email: ${{secrets.HEROKU_EMAIL}}
-        usedocker: true
+        branch: develop
+        git_push_flags: '--force'
+        git_remote_url: ${{ secrets.DOKKU_SSH_URL }}
+        ssh_private_key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
+
+    # - name: Deploy to Heroku
+    #   uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+    #   with:
+    #     heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+    #     heroku_app_name: ${{env.REPOSITORY_NAME}} #Must be unique in Heroku
+    #     heroku_email: ${{secrets.HEROKU_EMAIL}}
+    #     usedocker: true
 
     #- name: Test
     #  run: go test -v ./...
