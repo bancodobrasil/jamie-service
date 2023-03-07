@@ -45,8 +45,8 @@ func NewMenu(service services.Menu) Menu {
 // @Failure 		500 {object} string
 // @Failure 		default {object} string
 // @Security 		Authentication Api Key
-// @Router 			/{uuid}/{version} [get]
-// @Router 			/{uuid} [get]
+// @Router 			/menus/{uuid}/{version} [get]
+// @Router 			/menus/{uuid} [get]
 func (ctrl *menu) GetHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -89,8 +89,8 @@ func (ctrl *menu) GetHandler() gin.HandlerFunc {
 // @Failure 		500 {object} string
 // @Failure 		default {object} string
 // @Security 		Authentication Api Key
-// @Router 			/{uuid}/{version}/eval [post]
-// @Router 			/{uuid}/eval [post]
+// @Router 			/menus/{uuid}/{version}/eval [post]
+// @Router 			/menus/{uuid}/eval [post]
 func (ctrl *menu) EvalHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
