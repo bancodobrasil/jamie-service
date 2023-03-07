@@ -69,69 +69,8 @@ func (ctrl *menu) GetHandler() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(200, menu)
+		c.String(200, menu)
 
-		//loadMutex.Lock()
-
-		// menu := services.EvalService.GetKnowledgeLibrary().GetMenu(uuid, version)
-
-		// if !(len(menu.RuleEntries) > 0) {
-
-		// 	err := services.EvalService.LoadRemoteGRL(uuid, version)
-		// 	if err != nil {
-		// 		log.Errorf("Erro on load: %v", err)
-		// 		c.String(http.StatusInternalServerError, "Error on load menu and/or version")
-		// 		loadMutex.Unlock()
-		// 		return
-		// 	}
-
-		// 	menu = services.EvalService.GetKnowledgeLibrary().GetMenu(uuid, version)
-
-		// 	if !(len(menu.RuleEntries) > 0) {
-		// 		c.Status(http.StatusNotFound)
-		// 		fmt.Fprint(c.Writer, "Menu or version not founded!")
-		// 		loadMutex.Unlock()
-		// 		return
-		// 	}
-		// }
-
-		// loadMutex.Unlock()
-
-		// decoder := json.NewDecoder(c.Request.Body)
-		// var t payloads.Eval
-		// err := decoder.Decode(&t)
-		// if err != nil {
-		// 	log.Errorf("Erro on json decode: %v", err)
-		// 	c.Status(http.StatusInternalServerError)
-		// 	fmt.Fprint(c.Writer, "Error on json decode")
-		// 	return
-		// }
-		// log.Debugln(t)
-
-		// ctx := types.NewContextFromMap(t)
-		// ctx.RawContext = c.Request.Context()
-
-		// result, err := services.EvalService.Eval(ctx, menu)
-		// if err != nil {
-
-		// 	log.Errorf("Error on eval: %v", err)
-		// 	c.Status(http.StatusInternalServerError)
-		// 	fmt.Fprint(c.Writer, "Error on eval")
-		// 	return
-		// }
-
-		// log.Debug("Context:\n\t", ctx.GetEntries(), "\n\n")
-		// log.Debug("Features:\n\t", result.GetFeatures(), "\n\n")
-
-		// responseCode := http.StatusOK
-
-		// if result.Has("requiredParamErrors") {
-		// 	responseCode = http.StatusBadRequest
-		// }
-
-		// c.JSON(responseCode, result.GetFeatures())
-
-		//c.String(200, "OK")
 	}
 
 }
@@ -185,7 +124,7 @@ func (ctrl *menu) EvalHandler() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(200, menu)
+		c.String(200, menu)
 
 	}
 }

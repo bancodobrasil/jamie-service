@@ -2,7 +2,6 @@ package loaders
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,7 +9,6 @@ import (
 	"path"
 
 	"github.com/bancodobrasil/jamie-service/config"
-	"github.com/bancodobrasil/jamie-service/dtos"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -56,36 +54,28 @@ func (l *fileSystem) checkConfig() error {
 	return nil
 }
 
-func (l *fileSystem) Load(ctx context.Context, uuid string, version string) (*dtos.Menu, error) {
+func (l *fileSystem) Load(ctx context.Context, uuid string, version string) (string, error) {
 	log.Debugf("Loading from %s > uuid:%s version: %s", FileSystemLoader, uuid, version)
 
 	filePath := path.Join(l.cfg.Path, uuid, version+".jamie")
 
 	if _, err := os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
-		return nil, fmt.Errorf("this version not exists: %s", filePath)
+		return "", fmt.Errorf("this version not exists: %s", filePath)
 	}
 
-	jsonFile, err := os.Open(filePath)
+	jamieFile, err := os.Open(filePath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	// defer the closing of our jsonFile so that we can parse it later on
-	defer jsonFile.Close()
+	defer jamieFile.Close()
 
-	byteValue, err := io.ReadAll(jsonFile)
+	byteValue, err := io.ReadAll(jamieFile)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	dto := &dtos.Menu{}
-
-	err = json.Unmarshal(byteValue, dto)
-	if err != nil {
-		return nil, err
-	}
-
-	return dto, nil
+	return string(byteValue), nil
 }
 
 func registerFileSystemLoader(m *manager) error {

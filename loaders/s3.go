@@ -2,12 +2,10 @@ package loaders
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 
 	"github.com/bancodobrasil/jamie-service/config"
-	"github.com/bancodobrasil/jamie-service/dtos"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/minio/minio-go/v7"
@@ -55,7 +53,7 @@ func (l *s3) checkConfig() error {
 	return nil
 }
 
-func (l *s3) Load(ctx context.Context, uuid string, version string) (*dtos.Menu, error) {
+func (l *s3) Load(ctx context.Context, uuid string, version string) (string, error) {
 	log.Debugf("Loading from %s > uuid:%s version: %s", S3Loader, uuid, version)
 
 	log.Tracef("S3> endpoint: %s access_key: %s bucket: %s object: %s", l.cfg.Endpoint, l.cfg.AccessKey, l.cfg.Bucket, fmt.Sprintf("%s/%s.json", uuid, version))
@@ -67,31 +65,23 @@ func (l *s3) Load(ctx context.Context, uuid string, version string) (*dtos.Menu,
 	})
 	if err != nil {
 		log.Errorf("s3: error on new client: %s", err)
-		return nil, err
+		return "", err
 	}
 
 	obj, err := client.GetObject(ctx, l.cfg.Bucket, fmt.Sprintf("%s/%s.jamie", uuid, version), minio.GetObjectOptions{})
 	if err != nil {
 		log.Errorf("s3: error on get: %s", err)
-		return nil, err
+		return "", err
 	}
 	defer obj.Close()
 
 	byteValue, err := io.ReadAll(obj)
 	if err != nil {
 		log.Errorf("s3: error on read: %s", err)
-		return nil, err
+		return "", err
 	}
 
-	dto := &dtos.Menu{}
-
-	err = json.Unmarshal(byteValue, dto)
-	if err != nil {
-		log.Errorf("s3: error on unmarshal: %s", err)
-		return nil, err
-	}
-
-	return dto, nil
+	return string(byteValue), nil
 }
 
 func registerS3Loader(m *manager) error {

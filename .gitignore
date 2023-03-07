@@ -9,3 +9,4 @@ example.json
 vendor
 _data/*
 !.gitkeep
+__debug_bin

@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"sync"
 	"time"
-
-	"github.com/bancodobrasil/jamie-service/dtos"
 )
 
 // Cache ...
 type Cache interface {
-	Get(ctx context.Context, uuid string, version string) (*dtos.Menu, error)
-	Put(ctx context.Context, uuid string, version string, value *dtos.Menu, ttl time.Duration) error
+	Get(ctx context.Context, uuid string, version string) (interface{}, error)
+	Put(ctx context.Context, uuid string, version string, value interface{}, ttl time.Duration) error
 	Close() error
 }
 
@@ -31,15 +29,15 @@ func (c *cache) buildkey(uuid string, version string) string {
 	return fmt.Sprintf("%s-%s", uuid, version)
 }
 
-func (c *cache) Get(ctx context.Context, uuid string, version string) (*dtos.Menu, error) {
+func (c *cache) Get(ctx context.Context, uuid string, version string) (interface{}, error) {
 	v, ok := c.eMap.Get(c.buildkey(uuid, version))
 	if !ok {
 		return nil, nil
 	}
-	return v.(*dtos.Menu), nil
+	return v, nil
 }
 
-func (c *cache) Put(ctx context.Context, uuid string, version string, value *dtos.Menu, ttl time.Duration) error {
+func (c *cache) Put(ctx context.Context, uuid string, version string, value interface{}, ttl time.Duration) error {
 	c.eMap.Put(c.buildkey(uuid, version), value, ttl)
 	return nil
 }

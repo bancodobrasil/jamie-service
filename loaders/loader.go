@@ -2,13 +2,11 @@ package loaders
 
 import (
 	"context"
-
-	"github.com/bancodobrasil/jamie-service/dtos"
 )
 
 // Loader ...
 type Loader interface {
-	Load(ctx context.Context, uuid string, version string) (*dtos.Menu, error)
+	Load(ctx context.Context, uuid string, version string) (string, error)
 	isConfigured() bool
 	checkConfig() error
 }
