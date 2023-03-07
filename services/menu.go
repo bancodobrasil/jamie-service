@@ -1,8 +1,10 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"text/template"
 	"time"
 
 	"github.com/bancodobrasil/jamie-service/config"
@@ -81,10 +83,23 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 }
 
 func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dtos.Eval) (string, error) {
-	content, err := s.Get(ctx, uuid, version)
+	templateContent, err := s.Get(ctx, uuid, version)
 	if err != nil {
 		return "", err
 	}
 
-	return content, nil
+	tmpl, err := template.New(uuid).Parse(templateContent)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+
+	// TODO call featws
+	err = tmpl.Execute(&buf, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
