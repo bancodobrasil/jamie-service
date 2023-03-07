@@ -5,7 +5,7 @@ on:
     branches: [ develop ]
 
 env:
-  LATEST_GO_VERSION: "1.17"
+  LATEST_GO_VERSION: "1.19"
   GO111MODULE: "on"
 
 jobs:
