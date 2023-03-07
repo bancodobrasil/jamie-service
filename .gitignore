@@ -10,4 +10,5 @@ vendor
 _data/*
 !.gitkeep
 __debug_bin
-
+/docs
+.DS_Store
