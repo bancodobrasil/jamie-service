@@ -28,6 +28,11 @@ jobs:
 
     - name: "Fetch dependencies"
       run: go mod download
+
+    - name: "Generate Swagger"
+      run: |
+          go install github.com/swaggo/swag/cmd/swag@v1.8.10
+          swag i
             
       # Only run gofmt, vet & lint against the latest Go version
     - name: "Run golint"
