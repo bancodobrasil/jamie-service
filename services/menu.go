@@ -85,6 +85,10 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 		}
 	}
 
+	if content == nil {
+		content = ""
+	}
+
 	return content.(string), nil
 }
 
