@@ -28,7 +28,11 @@ type menu struct {
 
 // NewMenu ...
 func NewMenu(cfg *config.Config, loadersManager loaders.Manager, cacheService Cache) Menu {
-	rullerClient := featws.NewRullerClient(cfg.FeatWSRullerURL, cfg.FeatWSRullerAPIKey)
+	var rullerClient *featws.RullerClient = nil
+
+	if cfg.FeatWSRullerURL != "" {
+		featws.NewRullerClient(cfg.FeatWSRullerURL, cfg.FeatWSRullerAPIKey)
+	}
 
 	return &menu{cfg: cfg, loadersManager: loadersManager, cacheService: cacheService, rullerClient: rullerClient}
 }
@@ -56,6 +60,8 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 		version = CurrentMenuVersion
 	}
 
+	var response string
+
 	content, err := s.cacheService.Get(ctx, uuid, version)
 	if err != nil {
 		return "", err
@@ -67,23 +73,39 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 			return "", err
 		}
 
+		if s.rullerClient != nil {
+			features, err := s.rullerClient.GetFeatures("", "", map[string]string{})
+			if err != nil {
+				return "", err
+			}
+
+			response, err = s.processTemplateConditions(
+				uuid,
+				content.(string),
+				features,
+			)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			response = content.(string)
+		}
+
 		ttl := time.Duration(s.cfg.Cache.ClosedTTL) * time.Second
 
 		if version == CurrentMenuVersion {
 			ttl = time.Duration(s.cfg.Cache.CurrentTTL) * time.Second
 		}
 
-		err = s.cacheService.Put(ctx, uuid, version, content, ttl)
+		err = s.cacheService.Put(ctx, uuid, version, response, ttl)
 		if err != nil {
 			return "", err
 		}
+	} else {
+		response = content.(string)
 	}
 
-	if content == nil {
-		content = ""
-	}
-
-	return content.(string), nil
+	return response, nil
 }
 
 func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dtos.Eval) (string, error) {
@@ -91,7 +113,10 @@ func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dt
 	if err != nil {
 		return "", err
 	}
+	return s.processTemplateConditions(uuid, templateContent, dto)
+}
 
+func (s *menu) processTemplateConditions(uuid string, templateContent string, features *dtos.Eval) (string, error) {
 	tmpl, err := template.New(uuid).Parse(templateContent)
 	if err != nil {
 		return "", err
