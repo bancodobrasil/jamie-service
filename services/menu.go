@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"text/template"
 	"time"
 
@@ -126,5 +128,16 @@ func (s *menu) processTemplateConditions(uuid string, templateContent string, fe
 		return "", err
 	}
 
-	return buf.String(), nil
+	result := s.formatJson(buf.String())
+
+	return result, nil
+}
+
+func (s *menu) formatJson(json string) string {
+	if (strings.HasPrefix(json, "{") && strings.HasSuffix(json, "}")) ||
+		(strings.HasPrefix(json, "[") && strings.HasSuffix(json, "]")) {
+		r := regexp.MustCompile(",(?=\\s*?[\\]}])")
+		return r.ReplaceAllString(json, "")
+	}
+	return json
 }
