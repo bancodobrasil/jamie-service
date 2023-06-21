@@ -30,6 +30,10 @@ type Config struct {
 	FileSystem *FileSystemLoader
 
 	S3 *S3Loader
+
+	// FeatWS Ruller Client
+	FeatWSRullerURL    string `mapstructure:"JAMIE_SERVICE_FEATWS_RULLER_URL"`
+	FeatWSRullerAPIKey string `mapstructure:"JAMIE_SERVICE_FEATWS_RULLER_API_KEY"`
 }
 
 // Cache ...
