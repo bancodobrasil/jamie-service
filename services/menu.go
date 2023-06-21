@@ -115,11 +115,13 @@ func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dt
 		return "", err
 	}
 
-	if content == nil {
-		content, err = s.Get(ctx, uuid, version)
-		if err != nil {
-			return "", err
-		}
+	if content != nil {
+		return content.(string), nil
+	}
+
+	content, err = s.Get(ctx, uuid, version)
+	if err != nil {
+		return "", err
 	}
 
 	var response string = ""
@@ -135,6 +137,11 @@ func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dt
 			content.(string),
 			evalResult,
 		)
+		if err != nil {
+			return "", err
+		}
+
+		err = s.cacheService.Put(ctx, cacheKey, response, time.Duration(s.cfg.Cache.ClosedTTL)*time.Second)
 		if err != nil {
 			return "", err
 		}
