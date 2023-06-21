@@ -5,10 +5,16 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/bancodobrasil/jamie-service/dtos"
 	log "github.com/sirupsen/logrus"
 )
 
 type EvalRequest map[string]interface{}
+
+func NewEvalRequest(dto dtos.Process) EvalRequest {
+	return EvalRequest(dto)
+}
+
 type EvalPayload map[string]interface{}
 
 type RullerClient struct {

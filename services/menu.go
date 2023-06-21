@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -24,6 +25,11 @@ type processCacheKey struct {
 	uuid    string
 	version string
 	payload *dtos.Process
+}
+
+type templateFormat struct {
+	Template      string  `json:"template"`
+	FeatWSVersion *string `json:"featws_version"`
 }
 
 // Menu ...
@@ -119,34 +125,39 @@ func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dt
 		return content.(string), nil
 	}
 
-	content, err = s.Get(ctx, uuid, version)
+	tmpl, err := s.Get(ctx, uuid, version)
 	if err != nil {
 		return "", err
 	}
 
-	var response string = ""
+	parsedTemplate := templateFormat{}
 
-	if s.rullerClient != nil {
-		evalResult, err := s.rullerClient.Eval("jamie-menu-"+uuid, version, map[string]interface{}{})
-		if err != nil {
-			return "", err
-		}
+	err = json.Unmarshal([]byte(tmpl), &parsedTemplate)
+	if err != nil {
+		return "", err
+	}
 
-		response, err = s.processTemplateConditions(
-			uuid,
-			content.(string),
-			evalResult,
-		)
-		if err != nil {
-			return "", err
-		}
+	if parsedTemplate.FeatWSVersion == nil {
+		return parsedTemplate.Template, nil
+	}
 
-		err = s.cacheService.Put(ctx, cacheKey, response, time.Duration(s.cfg.Cache.ClosedTTL)*time.Second)
-		if err != nil {
-			return "", err
-		}
-	} else if content != nil {
-		response = content.(string)
+	evalResult, err := s.rullerClient.Eval("jamie-menu-"+uuid, *parsedTemplate.FeatWSVersion, featws.NewEvalRequest(*dto))
+	if err != nil {
+		return "", err
+	}
+
+	response, err := s.processTemplateConditions(
+		uuid,
+		parsedTemplate.Template,
+		evalResult,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	err = s.cacheService.Put(ctx, cacheKey, response, time.Duration(s.cfg.Cache.ClosedTTL)*time.Second)
+	if err != nil {
+		return "", err
 	}
 
 	return response, nil
