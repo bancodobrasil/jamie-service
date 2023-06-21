@@ -7,6 +7,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/bancodobrasil/jamie-service/clients/featws"
 	"github.com/bancodobrasil/jamie-service/config"
 	"github.com/bancodobrasil/jamie-service/dtos"
 	"github.com/bancodobrasil/jamie-service/loaders"
@@ -22,11 +23,14 @@ type menu struct {
 	cfg            *config.Config
 	loadersManager loaders.Manager
 	cacheService   Cache
+	rullerClient   *featws.RullerClient
 }
 
 // NewMenu ...
 func NewMenu(cfg *config.Config, loadersManager loaders.Manager, cacheService Cache) Menu {
-	return &menu{cfg: cfg, loadersManager: loadersManager, cacheService: cacheService}
+	rullerClient := featws.NewRullerClient(cfg.FeatWSRullerURL, cfg.FeatWSRullerAPIKey)
+
+	return &menu{cfg: cfg, loadersManager: loadersManager, cacheService: cacheService, rullerClient: rullerClient}
 }
 
 // load ...
