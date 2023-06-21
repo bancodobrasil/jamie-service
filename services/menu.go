@@ -74,7 +74,7 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 		}
 
 		if s.rullerClient != nil {
-			features, err := s.rullerClient.GetFeatures("", "", map[string]string{})
+			features, err := s.rullerClient.GetFeatures(uuid, version, map[string]string{})
 			if err != nil {
 				return "", err
 			}
