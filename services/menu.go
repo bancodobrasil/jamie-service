@@ -109,11 +109,7 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 }
 
 func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dtos.Eval) (string, error) {
-	templateContent, err := s.Get(ctx, uuid, version)
-	if err != nil {
-		return "", err
-	}
-	return s.processTemplateConditions(uuid, templateContent, dto)
+	return s.Get(ctx, uuid, version)
 }
 
 func (s *menu) processTemplateConditions(uuid string, templateContent string, features *dtos.Eval) (string, error) {
