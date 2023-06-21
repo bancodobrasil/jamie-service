@@ -116,7 +116,7 @@ func (ctrl *menu) EvalHandler() gin.HandlerFunc {
 			return
 		}
 
-		dto := dtos.NewEval(t)
+		dto := dtos.NewProcess(t)
 
 		menu, err := ctrl.service.Process(ctx, uuid, version, &dto)
 		if err != nil {

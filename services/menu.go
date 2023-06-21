@@ -23,13 +23,13 @@ type getCacheKey struct {
 type processCacheKey struct {
 	uuid    string
 	version string
-	payload *dtos.Eval
+	payload *dtos.Process
 }
 
 // Menu ...
 type Menu interface {
 	Get(ctx context.Context, uuid string, version string) (string, error)
-	Process(ctx context.Context, uuid string, version string, payload *dtos.Eval) (string, error)
+	Process(ctx context.Context, uuid string, version string, payload *dtos.Process) (string, error)
 }
 
 type menu struct {
@@ -106,7 +106,7 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 }
 
 // Process ...
-func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dtos.Eval) (string, error) {
+func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dtos.Process) (string, error) {
 
 	cacheKey := &processCacheKey{uuid: uuid, version: version, payload: dto}
 
