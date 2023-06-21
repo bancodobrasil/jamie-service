@@ -15,6 +15,17 @@ import (
 	"github.com/bancodobrasil/jamie-service/loaders"
 )
 
+type getCacheKey struct {
+	uuid    string
+	version string
+}
+
+type processCacheKey struct {
+	uuid    string
+	version string
+	payload *dtos.Eval
+}
+
 // Menu ...
 type Menu interface {
 	Get(ctx context.Context, uuid string, version string) (string, error)
@@ -62,7 +73,9 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 		version = CurrentMenuVersion
 	}
 
-	content, err := s.cacheService.Get(ctx, uuid, version)
+	cacheKey := &getCacheKey{uuid: uuid, version: version}
+
+	content, err := s.cacheService.Get(ctx, cacheKey)
 	if err != nil {
 		return "", err
 	}
@@ -79,7 +92,7 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 			ttl = time.Duration(s.cfg.Cache.CurrentTTL) * time.Second
 		}
 
-		err = s.cacheService.Put(ctx, uuid, version, content, ttl)
+		err = s.cacheService.Put(ctx, cacheKey, content, ttl)
 		if err != nil {
 			return "", err
 		}
@@ -95,7 +108,9 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 // Process ...
 func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dtos.Eval) (string, error) {
 
-	content, err := s.cacheService.Get(ctx, uuid, version)
+	cacheKey := &processCacheKey{uuid: uuid, version: version, payload: dto}
+
+	content, err := s.cacheService.Get(ctx, cacheKey)
 	if err != nil {
 		return "", err
 	}
@@ -107,7 +122,7 @@ func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dt
 		}
 	}
 
-	var response string
+	var response string = ""
 
 	if s.rullerClient != nil {
 		evalResult, err := s.rullerClient.Eval("jamie-menu-"+uuid, version, map[string]interface{}{})
@@ -123,7 +138,7 @@ func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dt
 		if err != nil {
 			return "", err
 		}
-	} else {
+	} else if content != nil {
 		response = content.(string)
 	}
 

@@ -2,15 +2,14 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 )
 
 // Cache ...
 type Cache interface {
-	Get(ctx context.Context, uuid string, version string) (interface{}, error)
-	Put(ctx context.Context, uuid string, version string, value interface{}, ttl time.Duration) error
+	Get(ctx context.Context, key interface{}) (interface{}, error)
+	Put(ctx context.Context, key interface{}, value interface{}, ttl time.Duration) error
 	Close() error
 }
 
@@ -25,20 +24,16 @@ func NewCache() Cache {
 	}
 }
 
-func (c *cache) buildkey(uuid string, version string) string {
-	return fmt.Sprintf("%s-%s", uuid, version)
-}
-
-func (c *cache) Get(ctx context.Context, uuid string, version string) (interface{}, error) {
-	v, ok := c.eMap.Get(c.buildkey(uuid, version))
+func (c *cache) Get(ctx context.Context, key interface{}) (interface{}, error) {
+	v, ok := c.eMap.Get(key)
 	if !ok {
 		return nil, nil
 	}
 	return v, nil
 }
 
-func (c *cache) Put(ctx context.Context, uuid string, version string, value interface{}, ttl time.Duration) error {
-	c.eMap.Put(c.buildkey(uuid, version), value, ttl)
+func (c *cache) Put(ctx context.Context, key interface{}, value interface{}, ttl time.Duration) error {
+	c.eMap.Put(key, value, ttl)
 	return nil
 }
 
