@@ -62,8 +62,6 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 		version = CurrentMenuVersion
 	}
 
-	var response string
-
 	content, err := s.cacheService.Get(ctx, uuid, version)
 	if err != nil {
 		return "", err
@@ -75,31 +73,49 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 			return "", err
 		}
 
-		if s.rullerClient != nil {
-			features, err := s.rullerClient.GetFeatures("jamie-menu-"+uuid, version, map[string]string{})
-			if err != nil {
-				return "", err
-			}
-
-			response, err = s.processTemplateConditions(
-				uuid,
-				content.(string),
-				features,
-			)
-			if err != nil {
-				return "", err
-			}
-		} else {
-			response = content.(string)
-		}
-
 		ttl := time.Duration(s.cfg.Cache.ClosedTTL) * time.Second
 
 		if version == CurrentMenuVersion {
 			ttl = time.Duration(s.cfg.Cache.CurrentTTL) * time.Second
 		}
 
-		err = s.cacheService.Put(ctx, uuid, version, response, ttl)
+		err = s.cacheService.Put(ctx, uuid, version, content, ttl)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return content.(string), nil
+}
+
+// Process ...
+func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dtos.Eval) (string, error) {
+
+	content, err := s.cacheService.Get(ctx, uuid, version)
+	if err != nil {
+		return "", err
+	}
+
+	if content == nil {
+		content, err = s.Get(ctx, uuid, version)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	var response string
+
+	if s.rullerClient != nil {
+		evalResult, err := s.rullerClient.Eval("jamie-menu-"+uuid, version, map[string]interface{}{})
+		if err != nil {
+			return "", err
+		}
+
+		response, err = s.processTemplateConditions(
+			uuid,
+			content.(string),
+			evalResult,
+		)
 		if err != nil {
 			return "", err
 		}
@@ -110,11 +126,8 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 	return response, nil
 }
 
-func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dtos.Eval) (string, error) {
-	return s.Get(ctx, uuid, version)
-}
-
-func (s *menu) processTemplateConditions(uuid string, templateContent string, features *dtos.Eval) (string, error) {
+// processTemplateConditions ...
+func (s *menu) processTemplateConditions(uuid string, templateContent string, evalResult *featws.EvalPayload) (string, error) {
 	tmpl, err := template.New(uuid).Parse(templateContent)
 	if err != nil {
 		return "", err
@@ -122,8 +135,7 @@ func (s *menu) processTemplateConditions(uuid string, templateContent string, fe
 
 	var buf bytes.Buffer
 
-	// TODO call featws
-	err = tmpl.Execute(&buf, nil)
+	err = tmpl.Execute(&buf, evalResult)
 	if err != nil {
 		return "", err
 	}
@@ -133,6 +145,7 @@ func (s *menu) processTemplateConditions(uuid string, templateContent string, fe
 	return result, nil
 }
 
+// formatJson ...
 func (s *menu) formatJson(json string) string {
 	if (strings.HasPrefix(json, "{") && strings.HasSuffix(json, "}")) ||
 		(strings.HasPrefix(json, "[") && strings.HasSuffix(json, "]")) {

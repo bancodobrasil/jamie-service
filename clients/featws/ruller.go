@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/bancodobrasil/jamie-service/dtos"
 	log "github.com/sirupsen/logrus"
 )
+
+type EvalRequest map[string]interface{}
+type EvalPayload map[string]interface{}
 
 type RullerClient struct {
 	Url    string
@@ -21,7 +23,7 @@ func NewRullerClient(url, apiKey string) *RullerClient {
 	}
 }
 
-func (c *RullerClient) GetFeatures(knowledgeBase string, version string, parameters map[string]string) (*dtos.Eval, error) {
+func (c *RullerClient) Eval(knowledgeBase string, version string, parameters EvalRequest) (*EvalPayload, error) {
 	parametersJson, err := json.Marshal(parameters)
 	if err != nil {
 		log.Errorf("Error marshaling parameters: %s", err)
@@ -46,7 +48,7 @@ func (c *RullerClient) GetFeatures(knowledgeBase string, version string, paramet
 	defer response.Body.Close()
 	log.Debugf("Response status: %s", response.Status)
 	log.Debugf("Response headers: %s", response.Header)
-	responseBody := &dtos.Eval{}
+	responseBody := &EvalPayload{}
 	err = json.NewDecoder(response.Body).Decode(responseBody)
 	if err != nil {
 		log.Errorf("Error decoding response: %s", err)
