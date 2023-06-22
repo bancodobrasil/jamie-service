@@ -47,12 +47,7 @@ type menu struct {
 
 // NewMenu ...
 func NewMenu(cfg *config.Config, loadersManager loaders.Manager, cacheService Cache) Menu {
-	var rullerClient *featws.RullerClient = nil
-
-	if cfg.FeatWSRullerURL != "" {
-		featws.NewRullerClient(cfg.FeatWSRullerURL, cfg.FeatWSRullerAPIKey)
-	}
-
+	rullerClient := featws.NewRullerClient(cfg.FeatWSRullerURL, cfg.FeatWSRullerAPIKey)
 	return &menu{cfg: cfg, loadersManager: loadersManager, cacheService: cacheService, rullerClient: rullerClient}
 }
 
