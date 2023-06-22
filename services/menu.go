@@ -5,15 +5,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/dlclark/regexp2"
 
 	"github.com/bancodobrasil/jamie-service/clients/featws"
 	"github.com/bancodobrasil/jamie-service/config"
 	"github.com/bancodobrasil/jamie-service/dtos"
 	"github.com/bancodobrasil/jamie-service/loaders"
+	"github.com/sirupsen/logrus"
 )
 
 type getCacheKey struct {
@@ -172,17 +174,30 @@ func (s *menu) processTemplateConditions(uuid string, templateContent string, ev
 		return "", err
 	}
 
-	result := s.formatJson(buf.String())
+	result, err := s.formatJson(buf.String())
+	if err != nil {
+		logrus.Errorf("Error formatting json: %s", err)
+		return "", err
+	}
 
 	return result, nil
 }
 
 // formatJson ...
-func (s *menu) formatJson(json string) string {
+func (s *menu) formatJson(json string) (string, error) {
+	r := regexp2.MustCompile("\\s", regexp2.None)
+	json, err := r.Replace(json, "", -1, -1)
+	if err != nil {
+		return json, err
+	}
 	if (strings.HasPrefix(json, "{") && strings.HasSuffix(json, "}")) ||
 		(strings.HasPrefix(json, "[") && strings.HasSuffix(json, "]")) {
-		r := regexp.MustCompile(",(?=\\s*?[\\]}])")
-		return r.ReplaceAllString(json, "")
+		r = regexp2.MustCompile("\\,(?!\\s*[\\{\"\\w])", regexp2.None)
+		json, err = r.Replace(json, "", -1, -1)
+		if err != nil {
+			return json, err
+		}
+		return json, err
 	}
-	return json
+	return json, err
 }

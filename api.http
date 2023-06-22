@@ -6,5 +6,5 @@ POST http://localhost:8005/api/v1/menus/64623317-d00c-4508-8db3-613d1ed24638/eva
 Content-Type: application/json
 
 {
-  "idade": 10
+  "idade": 18
 }

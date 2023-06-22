@@ -3,6 +3,7 @@ package featws
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/bancodobrasil/jamie-service/dtos"
@@ -30,15 +31,17 @@ func NewRullerClient(url, apiKey string) *RullerClient {
 }
 
 func (c *RullerClient) Eval(knowledgeBase string, version string, parameters EvalRequest) (*EvalPayload, error) {
+	url := fmt.Sprintf("%s/api/v1/eval/%s/%s", c.Url, knowledgeBase, version)
+	log.Debugf("Request url: %s", url)
 	parametersJson, err := json.Marshal(parameters)
 	if err != nil {
 		log.Errorf("Error marshaling parameters: %s", err)
 		return nil, err
 	}
-	body := []byte(`{"knowledgeBase": "` + knowledgeBase + `", "version": "` + version + `", "parameters": ` + string(parametersJson) + `}`)
+	body := []byte(string(parametersJson))
 	log.Debugf("Request body: %s", body)
 	bodyReader := bytes.NewReader(body)
-	request, err := http.NewRequest("POST", c.Url, bodyReader)
+	request, err := http.NewRequest("POST", url, bodyReader)
 	if err != nil {
 		log.Errorf("Error creating request: %s", err)
 		return nil, err
