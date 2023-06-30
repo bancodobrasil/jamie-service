@@ -8,6 +8,7 @@ require (
 	github.com/bancodobrasil/goauth v1.0.2
 	github.com/bancodobrasil/goauth-gin v0.0.3
 	github.com/bancodobrasil/healthcheck v0.0.2-rc1
+	github.com/dlclark/regexp2 v1.10.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/gsdenys/healthcheck v0.0.0-20220412001953-64e5089fa0bc
 	github.com/minio/minio-go/v7 v7.0.49

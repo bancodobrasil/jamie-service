@@ -3,30 +3,54 @@ package services
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"text/template"
 	"time"
 
+	"github.com/dlclark/regexp2"
+
+	"github.com/bancodobrasil/jamie-service/clients/featws"
 	"github.com/bancodobrasil/jamie-service/config"
 	"github.com/bancodobrasil/jamie-service/dtos"
 	"github.com/bancodobrasil/jamie-service/loaders"
+	"github.com/sirupsen/logrus"
 )
+
+type getCacheKey struct {
+	uuid    string
+	version string
+}
+
+type processCacheKey struct {
+	uuid    string
+	version string
+	payload *dtos.Process
+}
+
+type templateFormat struct {
+	Template      string  `json:"template"`
+	FeatWSVersion *string `json:"featws_version"`
+}
 
 // Menu ...
 type Menu interface {
 	Get(ctx context.Context, uuid string, version string) (string, error)
-	Process(ctx context.Context, uuid string, version string, payload *dtos.Eval) (string, error)
+	Process(ctx context.Context, uuid string, version string, payload *dtos.Process) (string, error)
 }
 
 type menu struct {
 	cfg            *config.Config
 	loadersManager loaders.Manager
 	cacheService   Cache
+	rullerClient   *featws.RullerClient
 }
 
 // NewMenu ...
 func NewMenu(cfg *config.Config, loadersManager loaders.Manager, cacheService Cache) Menu {
-	return &menu{cfg: cfg, loadersManager: loadersManager, cacheService: cacheService}
+	rullerClient := featws.NewRullerClient(cfg.FeatWSRullerURL, cfg.FeatWSRullerAPIKey)
+	return &menu{cfg: cfg, loadersManager: loadersManager, cacheService: cacheService, rullerClient: rullerClient}
 }
 
 // load ...
@@ -52,7 +76,9 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 		version = CurrentMenuVersion
 	}
 
-	content, err := s.cacheService.Get(ctx, uuid, version)
+	cacheKey := &getCacheKey{uuid: uuid, version: version}
+
+	content, err := s.cacheService.Get(ctx, cacheKey)
 	if err != nil {
 		return "", err
 	}
@@ -69,7 +95,7 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 			ttl = time.Duration(s.cfg.Cache.CurrentTTL) * time.Second
 		}
 
-		err = s.cacheService.Put(ctx, uuid, version, content, ttl)
+		err = s.cacheService.Put(ctx, cacheKey, content, ttl)
 		if err != nil {
 			return "", err
 		}
@@ -82,12 +108,60 @@ func (s *menu) Get(ctx context.Context, uuid string, version string) (string, er
 	return content.(string), nil
 }
 
-func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dtos.Eval) (string, error) {
-	templateContent, err := s.Get(ctx, uuid, version)
+// Process ...
+func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dtos.Process) (string, error) {
+
+	cacheKey := &processCacheKey{uuid: uuid, version: version, payload: dto}
+
+	content, err := s.cacheService.Get(ctx, cacheKey)
 	if err != nil {
 		return "", err
 	}
 
+	if content != nil {
+		return content.(string), nil
+	}
+
+	tmpl, err := s.Get(ctx, uuid, version)
+	if err != nil {
+		return "", err
+	}
+
+	parsedTemplate := templateFormat{}
+
+	err = json.Unmarshal([]byte(tmpl), &parsedTemplate)
+	if err != nil {
+		return "", err
+	}
+
+	if parsedTemplate.FeatWSVersion == nil {
+		return parsedTemplate.Template, nil
+	}
+
+	evalResult, err := s.rullerClient.Eval("jamie-menu-"+uuid, *parsedTemplate.FeatWSVersion, featws.NewEvalRequest(*dto))
+	if err != nil {
+		return "", err
+	}
+
+	response, err := s.processTemplateConditions(
+		uuid,
+		parsedTemplate.Template,
+		evalResult,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	err = s.cacheService.Put(ctx, cacheKey, response, time.Duration(s.cfg.Cache.ClosedTTL)*time.Second)
+	if err != nil {
+		return "", err
+	}
+
+	return response, nil
+}
+
+// processTemplateConditions ...
+func (s *menu) processTemplateConditions(uuid string, templateContent string, evalResult *featws.EvalPayload) (string, error) {
 	tmpl, err := template.New(uuid).Parse(templateContent)
 	if err != nil {
 		return "", err
@@ -95,11 +169,35 @@ func (s *menu) Process(ctx context.Context, uuid string, version string, dto *dt
 
 	var buf bytes.Buffer
 
-	// TODO call featws
-	err = tmpl.Execute(&buf, nil)
+	err = tmpl.Execute(&buf, evalResult)
 	if err != nil {
 		return "", err
 	}
 
-	return buf.String(), nil
+	result, err := s.formatJson(buf.String())
+	if err != nil {
+		logrus.Errorf("Error formatting json: %s", err)
+		return "", err
+	}
+
+	return result, nil
+}
+
+// formatJson ...
+func (s *menu) formatJson(json string) (string, error) {
+	r := regexp2.MustCompile("\\s", regexp2.None)
+	json, err := r.Replace(json, "", -1, -1)
+	if err != nil {
+		return json, err
+	}
+	if (strings.HasPrefix(json, "{") && strings.HasSuffix(json, "}")) ||
+		(strings.HasPrefix(json, "[") && strings.HasSuffix(json, "]")) {
+		r = regexp2.MustCompile("\\,(?!\\s*[\\{\"\\w])", regexp2.None)
+		json, err = r.Replace(json, "", -1, -1)
+		if err != nil {
+			return json, err
+		}
+		return json, err
+	}
+	return json, err
 }
